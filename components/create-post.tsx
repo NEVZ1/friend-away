@@ -28,6 +28,11 @@ export function CreatePost({ user, prompts }: { user: UserProfile; prompts: stri
           placeholder="What do you want to ask or share with your city?"
           name="content"
         />
+        <textarea
+          className="min-h-20 w-full rounded-xl border border-border bg-white px-4 py-3 text-sm outline-none ring-0 placeholder:text-slate-400 focus:border-primary"
+          placeholder="Optional media URLs (one per line): photos or .mp4 video links"
+          name="media_urls"
+        />
         <div className="flex flex-wrap gap-2">
           {prompts.map((prompt) => (
             <span

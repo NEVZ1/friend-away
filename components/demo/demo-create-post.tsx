@@ -23,6 +23,7 @@ export function DemoCreatePost({
 }) {
   const { createPost } = useDemo();
   const [content, setContent] = useState("");
+  const [mediaUrls, setMediaUrls] = useState("");
   const [communityId, setCommunityId] = useState(defaultCommunityId);
   const [error, setError] = useState<string | null>(null);
 
@@ -40,6 +41,12 @@ export function DemoCreatePost({
         placeholder="What do you want to ask or share with your city?"
         value={content}
         onChange={(event) => setContent(event.target.value)}
+      />
+      <textarea
+        className="min-h-20 w-full rounded-xl border border-border bg-white px-4 py-3 text-sm outline-none placeholder:text-slate-400 focus:border-primary"
+        placeholder="Optional media URLs (one per line): photos or .mp4 video links"
+        value={mediaUrls}
+        onChange={(event) => setMediaUrls(event.target.value)}
       />
       {communities.length > 0 ? (
         <select
@@ -67,12 +74,17 @@ export function DemoCreatePost({
       <div className="flex justify-end">
         <Button
           onClick={() => {
-            const result = createPost(content, communityId || null);
+            const parsedMedia = mediaUrls
+              .split("\n")
+              .map((item) => item.trim())
+              .filter(Boolean);
+            const result = createPost(content, communityId || null, parsedMedia);
             if (result.error) {
               setError(result.error);
               return;
             }
             setContent("");
+            setMediaUrls("");
             setCommunityId(defaultCommunityId);
             setError(null);
           }}

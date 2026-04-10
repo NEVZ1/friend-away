@@ -14,7 +14,10 @@ import {
   quickStartDemo,
   sendDemoMessage,
   signupDemo,
+  toggleDemoLike,
+  toggleDemoSave,
   toggleDemoCommunityMembership,
+  reportDemoPost,
   updateDemoProfile,
   type DemoState,
   type ProfilePayload,
@@ -33,10 +36,13 @@ type DemoContextValue = {
   logout: () => void;
   completeOnboarding: (payload: ProfilePayload) => void;
   updateProfile: (payload: ProfilePayload) => void;
-  createPost: (content: string, communityId?: string | null) => { error?: string };
+  createPost: (content: string, communityId?: string | null, mediaUrls?: string[]) => { error?: string };
   addComment: (postId: string, content: string) => { error?: string };
   toggleCommunityMembership: (communityId: string) => void;
   sendMessage: (receiverId: string, content: string) => { error?: string };
+  toggleLikePost: (postId: string) => { error?: string };
+  toggleSavePost: (postId: string) => { error?: string };
+  reportPost: (postId: string) => void;
   resetDemo: () => void;
 };
 
@@ -97,8 +103,8 @@ export function DemoProvider({ children }: { children: React.ReactNode }) {
       updateProfile(payload) {
         setState((current) => updateDemoProfile(current, payload));
       },
-      createPost(content, communityId) {
-        const result = createDemoPost(state, content, communityId);
+      createPost(content, communityId, mediaUrls) {
+        const result = createDemoPost(state, content, communityId, mediaUrls);
         setState(result.state);
         return result.error ? { error: result.error } : {};
       },
@@ -114,6 +120,20 @@ export function DemoProvider({ children }: { children: React.ReactNode }) {
         const result = sendDemoMessage(state, receiverId, content);
         setState(result.state);
         return result.error ? { error: result.error } : {};
+      },
+      toggleLikePost(postId) {
+        const result = toggleDemoLike(state, postId);
+        setState(result.state);
+        return result.error ? { error: result.error } : {};
+      },
+      toggleSavePost(postId) {
+        const result = toggleDemoSave(state, postId);
+        setState(result.state);
+        return result.error ? { error: result.error } : {};
+      },
+      reportPost(postId) {
+        const result = reportDemoPost(state, postId);
+        setState(result.state);
       },
       resetDemo() {
         const nextState = buildSeedState();

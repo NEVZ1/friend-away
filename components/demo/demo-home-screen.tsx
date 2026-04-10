@@ -15,7 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 
 export function DemoHomeScreen() {
-  const { currentUser, isReady, state } = useDemo();
+  const { currentUser, isReady, reportPost, state, toggleLikePost, toggleSavePost } = useDemo();
 
   if (!isReady) {
     return <DemoLoadingScreen />;
@@ -43,7 +43,19 @@ export function DemoHomeScreen() {
         ) : null}
         {feed.map((post, index) => (
           <div key={post.id} className="space-y-4">
-            <PostCard post={post} />
+            <PostCard
+              post={post}
+              viewerId={currentUser?.id}
+              onToggleLike={(postId) => {
+                toggleLikePost(postId);
+              }}
+              onToggleSave={(postId) => {
+                toggleSavePost(postId);
+              }}
+              onReport={(postId) => {
+                reportPost(postId);
+              }}
+            />
             {index === 0 ? <DemoCommentThread postId={post.id} /> : null}
           </div>
         ))}

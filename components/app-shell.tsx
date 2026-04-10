@@ -1,4 +1,5 @@
 import { Bell, Search } from "lucide-react";
+import Link from "next/link";
 
 import { BottomNav } from "@/components/bottom-nav";
 import { DemoSessionControls } from "@/components/demo/demo-session-controls";
@@ -43,6 +44,19 @@ export function AppShell({
             </div>
           </header>
           {children}
+          <footer className="mt-8 border-t border-slate-200 pt-5 text-xs text-muted">
+            <div className="flex flex-wrap items-center gap-3">
+              <Link href="/legal/terms" className="hover:text-primary">
+                Terms
+              </Link>
+              <Link href="/legal/privacy" className="hover:text-primary">
+                Privacy
+              </Link>
+              <Link href="/legal/community-guidelines" className="hover:text-primary">
+                Community Guidelines
+              </Link>
+            </div>
+          </footer>
         </main>
         {aside ? <aside className="hidden w-[320px] shrink-0 lg:block">{aside}</aside> : null}
       </div>

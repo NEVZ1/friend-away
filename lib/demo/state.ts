@@ -173,7 +173,7 @@ export function updateDemoProfile(state: DemoState, payload: ProfilePayload) {
   };
 }
 
-export function createDemoPost(state: DemoState, content: string, communityId?: string | null) {
+export function createDemoPost(state: DemoState, content: string, communityId?: string | null, mediaUrls: string[] = []) {
   const currentUser = getCurrentDemoUser(state);
   if (!currentUser) {
     return { state, error: "Log in first." };
@@ -194,6 +194,12 @@ export function createDemoPost(state: DemoState, content: string, communityId?: 
           community_id: community?.id ?? null,
           city: currentUser.current_city,
           content: content.trim(),
+          media_urls: mediaUrls,
+          likes_count: 0,
+          saves_count: 0,
+          reports_count: 0,
+          liked_by: [],
+          saved_by: [],
           created_at: new Date().toISOString(),
           author: currentUser,
           comments_count: 0,
@@ -201,6 +207,69 @@ export function createDemoPost(state: DemoState, content: string, communityId?: 
         },
         ...state.posts
       ]
+    }
+  };
+}
+
+export function toggleDemoLike(state: DemoState, postId: string) {
+  const currentUser = getCurrentDemoUser(state);
+  if (!currentUser) {
+    return { state, error: "Log in first." };
+  }
+
+  return {
+    state: {
+      ...state,
+      posts: state.posts.map((post) => {
+        if (post.id !== postId) {
+          return post;
+        }
+        const likedBy = post.liked_by ?? [];
+        const alreadyLiked = likedBy.includes(currentUser.id);
+        const nextLikedBy = alreadyLiked ? likedBy.filter((id) => id !== currentUser.id) : [...likedBy, currentUser.id];
+        return {
+          ...post,
+          liked_by: nextLikedBy,
+          likes_count: nextLikedBy.length
+        };
+      })
+    }
+  };
+}
+
+export function toggleDemoSave(state: DemoState, postId: string) {
+  const currentUser = getCurrentDemoUser(state);
+  if (!currentUser) {
+    return { state, error: "Log in first." };
+  }
+
+  return {
+    state: {
+      ...state,
+      posts: state.posts.map((post) => {
+        if (post.id !== postId) {
+          return post;
+        }
+        const savedBy = post.saved_by ?? [];
+        const alreadySaved = savedBy.includes(currentUser.id);
+        const nextSavedBy = alreadySaved ? savedBy.filter((id) => id !== currentUser.id) : [...savedBy, currentUser.id];
+        return {
+          ...post,
+          saved_by: nextSavedBy,
+          saves_count: nextSavedBy.length
+        };
+      })
+    }
+  };
+}
+
+export function reportDemoPost(state: DemoState, postId: string) {
+  return {
+    state: {
+      ...state,
+      posts: state.posts.map((post) =>
+        post.id === postId ? { ...post, reports_count: (post.reports_count ?? 0) + 1 } : post
+      )
     }
   };
 }

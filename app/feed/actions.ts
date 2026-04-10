@@ -13,6 +13,10 @@ type ActionState = {
 export async function createPost(_state: ActionState, formData: FormData): Promise<ActionState> {
   const content = String(formData.get("content") ?? "").trim();
   const city = String(formData.get("city") ?? "").trim();
+  const mediaUrls = String(formData.get("media_urls") ?? "")
+    .split("\n")
+    .map((item) => item.trim())
+    .filter(Boolean);
 
   if (!content || !city) {
     return { error: "Add some context before posting." };
@@ -31,11 +35,23 @@ export async function createPost(_state: ActionState, formData: FormData): Promi
     return { error: "You need to be logged in to post." };
   }
 
-  const { error } = await (supabase.from("posts") as any).insert({
+  let error: { message: string } | null = null;
+  const withMedia = await (supabase.from("posts") as any).insert({
     user_id: user.id,
     city,
-    content
+    content,
+    media_urls: mediaUrls
   });
+  error = withMedia.error ?? null;
+
+  if (error?.message?.toLowerCase().includes("media_urls")) {
+    const fallback = await (supabase.from("posts") as any).insert({
+      user_id: user.id,
+      city,
+      content
+    });
+    error = fallback.error ?? null;
+  }
 
   if (error) {
     return { error: error.message };

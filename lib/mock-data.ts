@@ -1,4 +1,4 @@
-import { Community, Message, Post, UserProfile } from "@/lib/types";
+import { Community, Message, NotificationItem, Post, UserProfile } from "@/lib/types";
 
 export const currentUser: UserProfile = {
   id: "user-1",
@@ -110,6 +110,15 @@ export const posts: Post[] = [
     city: "Berlin",
     content:
       "Anyone else arriving this month and trying to figure out the anmeldung process? I found one office with shorter queues and can share details.",
+    media_urls: [
+      "https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?auto=format&fit=crop&w=1200&q=80"
+    ],
+    likes_count: 42,
+    saves_count: 18,
+    reports_count: 0,
+    liked_by: ["user-1", "user-3"],
+    saved_by: ["user-1"],
     created_at: "2026-03-10T09:20:00.000Z",
     author: people[1],
     comments_count: 12,
@@ -122,6 +131,15 @@ export const posts: Post[] = [
     city: "Berlin",
     content:
       "Looking for a calm café in Neukölln with reliable Wi‑Fi for study sessions. Bonus if they do good tea.",
+    media_urls: [
+      "https://images.unsplash.com/photo-1445116572660-236099ec97a0?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1509042239860-f550ce710b93?auto=format&fit=crop&w=1200&q=80"
+    ],
+    likes_count: 27,
+    saves_count: 11,
+    reports_count: 0,
+    liked_by: ["user-2"],
+    saved_by: ["user-1", "user-2"],
     created_at: "2026-03-10T07:05:00.000Z",
     author: people[2],
     comments_count: 8,
@@ -134,6 +152,12 @@ export const posts: Post[] = [
     city: "Berlin",
     content:
       "Any recommendations for beginner-friendly German classes in Prenzlauer Berg? Prefer something social, not purely textbook-based.",
+    media_urls: ["https://images.unsplash.com/photo-1523050854058-8df90110c9f1?auto=format&fit=crop&w=1200&q=80"],
+    likes_count: 15,
+    saves_count: 4,
+    reports_count: 0,
+    liked_by: ["user-1"],
+    saved_by: [],
     created_at: "2026-03-10T06:10:00.000Z",
     author: people[3],
     comments_count: 4,
@@ -214,5 +238,38 @@ export const conversations = [
     last_message: "We’re making a list of student-friendly cafés.",
     last_message_at: "2026-03-10T10:20:00.000Z",
     unread_count: 0
+  }
+];
+
+export const notifications: NotificationItem[] = [
+  {
+    id: "notification-1",
+    user_id: "user-1",
+    actor_name: "Mateus Silva",
+    type: "message",
+    text: "sent you a message about the Sunday meetup.",
+    related_user_id: "user-2",
+    created_at: "2026-03-10T10:22:00.000Z",
+    read: false
+  },
+  {
+    id: "notification-2",
+    user_id: "user-1",
+    actor_name: "Sofia Ivanova",
+    type: "comment",
+    text: "commented on your community thread.",
+    related_post_id: "post-1",
+    related_user_id: "user-3",
+    created_at: "2026-03-10T09:48:00.000Z",
+    read: false
+  },
+  {
+    id: "notification-3",
+    user_id: "user-1",
+    actor_name: "FriendAway",
+    type: "system",
+    text: "Tip: complete your profile to get better city recommendations.",
+    created_at: "2026-03-10T08:10:00.000Z",
+    read: true
   }
 ];

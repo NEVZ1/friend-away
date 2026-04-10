@@ -59,6 +59,23 @@ export default async function DiscoverPage() {
               )}
             </div>
           </DiscoverSection>
+          <DiscoverSection
+            title="Media highlights"
+            description="A quick visual pulse of what people are sharing in your city."
+          >
+            <div className="grid grid-cols-2 gap-3">
+              {discover.posts
+                .flatMap((post) => post.media_urls ?? [])
+                .slice(0, 6)
+                .map((url) => (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img key={url} src={url} alt="City highlight" className="h-36 w-full rounded-xl object-cover" loading="lazy" />
+                ))}
+            </div>
+            {discover.posts.flatMap((post) => post.media_urls ?? []).length === 0 ? (
+              <p className="text-sm text-muted">No visual highlights yet in this city feed.</p>
+            ) : null}
+          </DiscoverSection>
         </div>
         <div className="space-y-6">
           <DiscoverSection

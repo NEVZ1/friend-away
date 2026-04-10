@@ -35,6 +35,7 @@ Planning and execution docs:
 - [`docs/PRODUCT_SPEC.md`](/Users/sevogumusboga/Desktop/FriendAway/docs/PRODUCT_SPEC.md)
 - [`docs/UI_SYSTEM.md`](/Users/sevogumusboga/Desktop/FriendAway/docs/UI_SYSTEM.md)
 - [`docs/TASKS.md`](/Users/sevogumusboga/Desktop/FriendAway/docs/TASKS.md)
+- [`docs/GROWTH_PRODUCTION_PLAN.md`](/Users/sevogumusboga/Desktop/FriendAway/docs/GROWTH_PRODUCTION_PLAN.md)
 
 Prompt packs:
 - [`prompts/00_master_prompt.md`](/Users/sevogumusboga/Desktop/FriendAway/prompts/00_master_prompt.md)

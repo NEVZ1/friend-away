@@ -31,6 +31,12 @@ export type Post = {
   community_id: string | null;
   city: string;
   content: string;
+  media_urls?: string[];
+  likes_count?: number;
+  saves_count?: number;
+  reports_count?: number;
+  liked_by?: string[];
+  saved_by?: string[];
   created_at: string;
   author: UserProfile;
   comments_count?: number;
@@ -60,4 +66,16 @@ export type Conversation = {
   last_message: string;
   last_message_at: string;
   unread_count: number;
+};
+
+export type NotificationItem = {
+  id: string;
+  user_id: string;
+  actor_name: string;
+  type: "like" | "comment" | "message" | "community_join" | "system";
+  text: string;
+  related_post_id?: string;
+  related_user_id?: string;
+  created_at: string;
+  read: boolean;
 };

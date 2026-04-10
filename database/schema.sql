@@ -36,6 +36,7 @@ create table if not exists public.posts (
   community_id uuid references public.communities (id) on delete set null,
   city text not null,
   content text not null,
+  media_urls text[] not null default '{}',
   created_at timestamptz not null default timezone('utc', now())
 );
 

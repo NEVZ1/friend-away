@@ -75,7 +75,7 @@ export async function getCityFeed(city: string): Promise<Post[]> {
   const supabase = await createClient();
   const postsTable = supabase.from("posts") as any;
   const { data, error } = await postsTable
-    .select("id, user_id, community_id, city, content, created_at")
+    .select("id, user_id, community_id, city, content, media_urls, created_at")
     .eq("city", city)
     .order("created_at", { ascending: false })
     .limit(50);
@@ -84,8 +84,17 @@ export async function getCityFeed(city: string): Promise<Post[]> {
     return posts.filter((post) => post.city === city);
   }
 
-  return (data as Array<{ id: string; user_id: string; community_id: string | null; city: string; content: string; created_at: string }>).map((post) => ({
+  return (data as Array<{
+    id: string;
+    user_id: string;
+    community_id: string | null;
+    city: string;
+    content: string;
+    media_urls?: string[] | null;
+    created_at: string;
+  }>).map((post) => ({
     ...post,
+    media_urls: post.media_urls ?? [],
     author: currentUser,
     comments_count: 0,
     community: communities.find((community) => community.id === post.community_id) ?? null
