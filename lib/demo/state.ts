@@ -27,6 +27,11 @@ export type SignupPayload = {
   bio: string;
 };
 
+export type QuickStartPayload = {
+  first_name: string;
+  last_name: string;
+};
+
 export type ProfilePayload = {
   name: string;
   current_city: string;
@@ -78,6 +83,40 @@ export function signupDemo(state: DemoState, payload: SignupPayload) {
     created_at: new Date().toISOString(),
     onboarding_completed: false,
     ...payload
+  };
+
+  return {
+    state: {
+      ...state,
+      profiles: [profile, ...state.profiles],
+      sessionUserId: id
+    }
+  };
+}
+
+export function quickStartDemo(state: DemoState, payload: QuickStartPayload) {
+  const fullName = `${payload.first_name} ${payload.last_name}`.trim();
+  if (!payload.first_name.trim() || !payload.last_name.trim()) {
+    return { state, error: "Please enter both name and surname." };
+  }
+
+  const id = `user-${Date.now()}`;
+  const email = `${payload.first_name}.${payload.last_name}.${Date.now()}@friendaway.demo`
+    .toLowerCase()
+    .replace(/\s+/g, "");
+
+  const profile: UserProfile = {
+    id,
+    name: fullName,
+    email,
+    current_city: "Berlin",
+    country_origin: "Not set",
+    arrival_date: new Date().toISOString().slice(0, 10),
+    user_type: "other",
+    bio: "Exploring FriendAway in demo mode.",
+    avatar_url: seedCurrentUser.avatar_url,
+    created_at: new Date().toISOString(),
+    onboarding_completed: true
   };
 
   return {

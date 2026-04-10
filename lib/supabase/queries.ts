@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { hasSupabasePublicEnv } from "@/lib/supabase/env";
 import {
   comments,
   communities,
@@ -14,7 +15,7 @@ import type { Comment, Community, Conversation, Message, Post, UserProfile } fro
 import { getArrivalCohort, slugify } from "@/lib/utils";
 
 export function hasSupabaseEnv() {
-  return Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
+  return hasSupabasePublicEnv();
 }
 
 export async function getCurrentUser(): Promise<UserProfile> {

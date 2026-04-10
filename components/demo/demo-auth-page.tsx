@@ -17,7 +17,7 @@ const seededAccounts = [
 
 export function DemoAuthPage({ mode }: { mode: "login" | "signup" }) {
   const router = useRouter();
-  const { login, resetDemo, signup } = useDemo();
+  const { login, quickStart, resetDemo } = useDemo();
   const [error, setError] = useState<string | null>(null);
 
   function onSubmit(formData: FormData) {
@@ -31,14 +31,9 @@ export function DemoAuthPage({ mode }: { mode: "login" | "signup" }) {
       return;
     }
 
-    const result = signup({
-      name: String(formData.get("name") ?? ""),
-      email: String(formData.get("email") ?? ""),
-      current_city: String(formData.get("current_city") ?? ""),
-      country_origin: String(formData.get("country_origin") ?? ""),
-      arrival_date: String(formData.get("arrival_date") ?? ""),
-      user_type: String(formData.get("user_type") ?? "other") as "student" | "worker" | "expat" | "other",
-      bio: String(formData.get("bio") ?? "")
+    const result = quickStart({
+      first_name: String(formData.get("first_name") ?? ""),
+      last_name: String(formData.get("last_name") ?? "")
     });
 
     if (result.error) {
@@ -46,7 +41,7 @@ export function DemoAuthPage({ mode }: { mode: "login" | "signup" }) {
       return;
     }
 
-    router.push("/onboarding");
+    router.push("/");
   }
 
   return (
@@ -58,7 +53,7 @@ export function DemoAuthPage({ mode }: { mode: "login" | "signup" }) {
           <p className="mt-2 text-sm text-muted">
             {mode === "login"
               ? "Use a seeded email like aylin@friendaway.app, mateus@example.com, or sofia@example.com."
-              : "This local signup is stored in your browser so you can finish the app before Supabase."}
+              : "Start in seconds with only your name. You can edit profile details later."}
           </p>
         </div>
         {mode === "login" ? (
@@ -99,36 +94,19 @@ export function DemoAuthPage({ mode }: { mode: "login" | "signup" }) {
             Restore sample data
           </button>
         </div>
-        <form
-          action={(formData) => onSubmit(formData)}
-          className={mode === "login" ? "space-y-4" : "grid gap-4 md:grid-cols-2"}
-        >
+        <form action={(formData) => onSubmit(formData)} className={mode === "login" ? "space-y-4" : "grid gap-4 md:grid-cols-2"}>
           {mode === "signup" ? (
             <>
-              <input className="rounded-xl border border-border px-4 py-3 md:col-span-2" placeholder="Full name" name="name" />
-              <input className="rounded-xl border border-border px-4 py-3" placeholder="Origin country" name="country_origin" />
-              <input className="rounded-xl border border-border px-4 py-3" placeholder="Current city" name="current_city" />
-              <input className="rounded-xl border border-border px-4 py-3" type="date" name="arrival_date" />
-              <select className="rounded-xl border border-border px-4 py-3" name="user_type" defaultValue="other">
-                <option value="student">Student</option>
-                <option value="worker">Worker</option>
-                <option value="expat">Expat</option>
-                <option value="other">Other</option>
-              </select>
+              <input className="rounded-xl border border-border px-4 py-3" placeholder="First name" name="first_name" />
+              <input className="rounded-xl border border-border px-4 py-3" placeholder="Surname" name="last_name" />
             </>
           ) : null}
-          <input
-            className={mode === "login" ? "w-full rounded-xl border border-border px-4 py-3" : "rounded-xl border border-border px-4 py-3 md:col-span-2"}
-            placeholder="Email"
-            type="email"
-            name="email"
-          />
-          {mode === "signup" ? (
-            <textarea className="min-h-28 rounded-xl border border-border px-4 py-3 md:col-span-2" placeholder="Short bio" name="bio" />
+          {mode === "login" ? (
+            <input className="w-full rounded-xl border border-border px-4 py-3" placeholder="Email" type="email" name="email" />
           ) : null}
           {error ? <p className={mode === "login" ? "text-sm text-rose-500" : "text-sm text-rose-500 md:col-span-2"}>{error}</p> : null}
           <Button className={mode === "login" ? "w-full" : "md:col-span-2"}>
-            {mode === "login" ? "Log in" : "Join FriendAway"}
+            {mode === "login" ? "Log in" : "Start Demo"}
           </Button>
         </form>
         <p className="text-sm text-muted">
@@ -139,7 +117,7 @@ export function DemoAuthPage({ mode }: { mode: "login" | "signup" }) {
         </p>
         {mode === "signup" ? (
           <div className="rounded-xl bg-slate-50 p-4 text-sm text-muted">
-            Demo signup creates a local browser-only account. You can reset everything later from the profile screen.
+            This creates a local browser-only demo profile and opens your dashboard immediately.
           </div>
         ) : null}
       </Card>

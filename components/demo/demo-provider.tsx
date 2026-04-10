@@ -11,12 +11,14 @@ import {
   getCurrentDemoUser,
   loginDemo,
   logoutDemo,
+  quickStartDemo,
   sendDemoMessage,
   signupDemo,
   toggleDemoCommunityMembership,
   updateDemoProfile,
   type DemoState,
   type ProfilePayload,
+  type QuickStartPayload,
   type SignupPayload
 } from "@/lib/demo/state";
 import type { UserProfile } from "@/lib/types";
@@ -27,6 +29,7 @@ type DemoContextValue = {
   currentUser: UserProfile | null;
   login: (email: string) => { error?: string };
   signup: (payload: SignupPayload) => { error?: string };
+  quickStart: (payload: QuickStartPayload) => { error?: string };
   logout: () => void;
   completeOnboarding: (payload: ProfilePayload) => void;
   updateProfile: (payload: ProfilePayload) => void;
@@ -77,6 +80,11 @@ export function DemoProvider({ children }: { children: React.ReactNode }) {
       },
       signup(payload) {
         const result = signupDemo(state, payload);
+        setState(result.state);
+        return result.error ? { error: result.error } : {};
+      },
+      quickStart(payload) {
+        const result = quickStartDemo(state, payload);
         setState(result.state);
         return result.error ? { error: result.error } : {};
       },

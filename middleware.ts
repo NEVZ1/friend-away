@@ -1,12 +1,14 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
+import { getSupabasePublishableKey, getSupabaseUrl, hasSupabasePublicEnv } from "@/lib/supabase/env";
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+  const previewMode = process.env.NEXT_PUBLIC_PUBLIC_PREVIEW !== "false";
   const isAuthRoute = pathname.startsWith("/auth");
   const isPublicRoute = isAuthRoute || pathname.startsWith("/api") || pathname === "/favicon.ico";
 
-  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+  if (!hasSupabasePublicEnv()) {
     return NextResponse.next({ request });
   }
 
@@ -14,10 +16,8 @@ export async function middleware(request: NextRequest) {
     request
   });
 
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL ?? "",
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "",
-    {
+  try {
+    const supabase = createServerClient(getSupabaseUrl(), getSupabasePublishableKey(), {
       cookies: {
         get(name: string) {
           return request.cookies.get(name)?.value;
@@ -37,39 +37,42 @@ export async function middleware(request: NextRequest) {
           response.cookies.set({ name, value: "", ...options });
         }
       }
-    }
-  );
+    });
 
-  const {
-    data: { user }
-  } = await supabase.auth.getUser();
+    const {
+      data: { user }
+    } = await supabase.auth.getUser();
 
-  if (!user && !isPublicRoute) {
-    return NextResponse.redirect(new URL("/auth/login", request.url));
-  }
-
-  if (user && isAuthRoute) {
-    return NextResponse.redirect(new URL("/", request.url));
-  }
-
-  if (user) {
-    const { data } = await supabase
-      .from("users")
-      .select("name,current_city,onboarding_completed")
-      .eq("id", user.id)
-      .maybeSingle();
-    const profile = data as { name?: string | null; current_city?: string | null; onboarding_completed?: boolean | null } | null;
-
-    const needsOnboarding =
-      !profile || !profile.name || !profile.current_city || profile.onboarding_completed === false;
-
-    if (needsOnboarding && pathname !== "/onboarding") {
-      return NextResponse.redirect(new URL("/onboarding", request.url));
+    if (!user && !isPublicRoute && !previewMode) {
+      return NextResponse.redirect(new URL("/auth/login", request.url));
     }
 
-    if (!needsOnboarding && pathname === "/onboarding") {
+    if (user && isAuthRoute) {
       return NextResponse.redirect(new URL("/", request.url));
     }
+
+    if (user) {
+      const { data } = await supabase
+        .from("users")
+        .select("name,current_city,onboarding_completed")
+        .eq("id", user.id)
+        .maybeSingle();
+      const profile = data as
+        | { name?: string | null; current_city?: string | null; onboarding_completed?: boolean | null }
+        | null;
+
+      const needsOnboarding = !profile || !profile.name || !profile.current_city || profile.onboarding_completed === false;
+
+      if (needsOnboarding && pathname !== "/onboarding") {
+        return NextResponse.redirect(new URL("/onboarding", request.url));
+      }
+
+      if (!needsOnboarding && pathname === "/onboarding") {
+        return NextResponse.redirect(new URL("/", request.url));
+      }
+    }
+  } catch (_error) {
+    return NextResponse.next({ request });
   }
 
   return response;

@@ -2,6 +2,7 @@
 
 import { redirect } from "next/navigation";
 
+import { hasSupabasePublicEnv } from "@/lib/supabase/env";
 import { createClient } from "@/lib/supabase/server";
 
 type AuthState = {
@@ -9,7 +10,7 @@ type AuthState = {
 };
 
 export async function login(_previousState: AuthState | void, formData: FormData): Promise<AuthState | void> {
-  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+  if (!hasSupabasePublicEnv()) {
     return { error: "Supabase environment variables are missing." };
   }
 
@@ -31,7 +32,7 @@ export async function login(_previousState: AuthState | void, formData: FormData
 }
 
 export async function signup(_previousState: AuthState | void, formData: FormData): Promise<AuthState | void> {
-  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+  if (!hasSupabasePublicEnv()) {
     return { error: "Supabase environment variables are missing." };
   }
 
