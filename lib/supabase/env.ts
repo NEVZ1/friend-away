@@ -14,3 +14,7 @@ export function getSupabasePublishableKey() {
 export function hasSupabasePublicEnv() {
   return Boolean(getSupabaseUrl() && getSupabasePublishableKey());
 }
+
+export function isPublicPreviewMode() {
+  return process.env.NEXT_PUBLIC_PUBLIC_PREVIEW === "true";
+}

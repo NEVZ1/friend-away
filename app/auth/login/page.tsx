@@ -4,9 +4,10 @@ import { login } from "@/app/auth/actions";
 import { AuthForm } from "@/components/auth/auth-form";
 import { DemoAuthPage } from "@/components/demo/demo-auth-page";
 import { Card } from "@/components/ui/card";
+import { isPublicPreviewMode } from "@/lib/supabase/env";
 
 export default function LoginPage() {
-  if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || isPublicPreviewMode()) {
     return <DemoAuthPage mode="login" />;
   }
 

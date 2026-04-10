@@ -1,12 +1,14 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Link from "next/link";
 
 import { AppShell } from "@/components/app-shell";
 import { CommunityList } from "@/components/community-list";
 import { DemoLoadingScreen } from "@/components/demo/demo-loading-screen";
 import { EmptyState } from "@/components/empty-state";
 import { FeedSidebar } from "@/components/feed-sidebar";
+import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useDemo } from "@/components/demo/demo-provider";
 import { rankSuggestedCommunities } from "@/lib/demo/recommendations";
@@ -29,13 +31,19 @@ export function DemoCommunitiesScreen() {
     return <DemoLoadingScreen />;
   }
 
-  if (!currentUser) {
-    return null;
-  }
+  const viewer = currentUser ?? state.profiles[0];
 
   return (
-    <AppShell title="Communities" subtitle="City, origin, and arrival-based groups designed for fast belonging." aside={<FeedSidebar user={currentUser} />} city={currentUser.current_city}>
+    <AppShell title="Communities" subtitle="City, origin, and arrival-based groups designed for fast belonging." aside={<FeedSidebar user={viewer} />} city={viewer.current_city}>
       <div className="space-y-6">
+        {!currentUser ? (
+          <Card className="flex flex-wrap items-center justify-between gap-3">
+            <p className="text-sm text-muted">You can browse all communities before creating a demo identity.</p>
+            <Link href="/auth/signup">
+              <Button>Start demo</Button>
+            </Link>
+          </Card>
+        ) : null}
         <Card className="space-y-4">
           <input
             className="w-full rounded-xl border border-border px-4 py-3 text-sm"

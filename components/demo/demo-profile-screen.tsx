@@ -18,22 +18,28 @@ export function DemoProfileScreen() {
     return <DemoLoadingScreen />;
   }
 
-  if (!currentUser) {
-    return null;
-  }
+  const viewer = currentUser ?? state.profiles[0];
 
-  const feed = state.posts.filter((post) => post.user_id === currentUser.id);
+  const feed = state.posts.filter((post) => post.user_id === viewer.id);
   const joined = state.communities.filter((community) => community.is_joined);
   const messageCount = state.messages.filter(
-    (message) => message.sender_id === currentUser.id || message.receiver_id === currentUser.id
+    (message) => message.sender_id === viewer.id || message.receiver_id === viewer.id
   ).length;
-  const recentComments = state.comments.filter((comment) => comment.user_id === currentUser.id).slice(-3).reverse();
+  const recentComments = state.comments.filter((comment) => comment.user_id === viewer.id).slice(-3).reverse();
   const recentCommunityNames = joined.slice(0, 3).map((community) => community.name);
 
   return (
-    <AppShell title="Profile" subtitle="Your story, local context, and the conversations you’re starting." city={currentUser.current_city}>
+    <AppShell title="Profile" subtitle="Your story, local context, and the conversations you’re starting." city={viewer.current_city}>
       <div className="space-y-6">
-        <ProfileHeader user={currentUser} />
+        {!currentUser ? (
+          <Card className="flex flex-wrap items-center justify-between gap-3">
+            <p className="text-sm text-muted">You are viewing the seeded profile preview. Start demo to create your own profile.</p>
+            <Link href="/auth/signup">
+              <Button>Start demo</Button>
+            </Link>
+          </Card>
+        ) : null}
+        <ProfileHeader user={viewer} />
         <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
           <div className="space-y-4">
             <div className="flex flex-wrap justify-end gap-3">

@@ -57,6 +57,7 @@ Helper scripts:
 - [`scripts/finalize.sh`](/Users/sevogumusboga/Desktop/FriendAway/scripts/finalize.sh)
 - [`scripts/finalize_and_run.sh`](/Users/sevogumusboga/Desktop/FriendAway/scripts/finalize_and_run.sh)
 - [`scripts/deploy_prep.sh`](/Users/sevogumusboga/Desktop/FriendAway/scripts/deploy_prep.sh)
+- [`scripts/finalize_production.sh`](/Users/sevogumusboga/Desktop/FriendAway/scripts/finalize_production.sh)
 - [`scripts/offline_brain.sh`](/Users/sevogumusboga/Desktop/FriendAway/scripts/offline_brain.sh)
 - [`scripts/offline_master.sh`](/Users/sevogumusboga/Desktop/FriendAway/scripts/offline_master.sh)
 - [`scripts/offline_phase_0.sh`](/Users/sevogumusboga/Desktop/FriendAway/scripts/offline_phase_0.sh)
@@ -101,6 +102,12 @@ To run a full pre-deploy pass before Vercel:
 
 ```bash
 ./scripts/deploy_prep.sh
+```
+
+For strict production finalization (preview off + env checks + tests + build):
+
+```bash
+./scripts/finalize_production.sh
 ```
 
 For the full offline build checklist and step order:

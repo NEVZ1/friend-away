@@ -1,10 +1,10 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
-import { getSupabasePublishableKey, getSupabaseUrl, hasSupabasePublicEnv } from "@/lib/supabase/env";
+import { getSupabasePublishableKey, getSupabaseUrl, hasSupabasePublicEnv, isPublicPreviewMode } from "@/lib/supabase/env";
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  const previewMode = process.env.NEXT_PUBLIC_PUBLIC_PREVIEW !== "false";
+  const previewMode = isPublicPreviewMode();
   const isAuthRoute = pathname.startsWith("/auth");
   const isPublicRoute = isAuthRoute || pathname.startsWith("/api") || pathname === "/favicon.ico";
 

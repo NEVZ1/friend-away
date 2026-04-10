@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 
 import { AppShell } from "@/components/app-shell";
 import { InboxList } from "@/components/inbox-list";
@@ -17,20 +18,22 @@ export function DemoMessagesScreen() {
   const [activeUserId, setActiveUserId] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<string | null>(null);
 
+  const viewer = currentUser ?? state.profiles[0];
+
   const conversations = useMemo(
     () =>
       state.profiles
         .filter(
           (profile) =>
-            profile.id !== currentUser?.id &&
+            profile.id !== viewer?.id &&
             (profile.name.toLowerCase().includes(query.toLowerCase()) ||
               profile.current_city.toLowerCase().includes(query.toLowerCase()))
         )
         .map((profile) => {
           const thread = state.messages.filter(
             (message) =>
-              (message.sender_id === profile.id && message.receiver_id === currentUser?.id) ||
-              (message.sender_id === currentUser?.id && message.receiver_id === profile.id)
+              (message.sender_id === profile.id && message.receiver_id === viewer?.id) ||
+              (message.sender_id === viewer?.id && message.receiver_id === profile.id)
           );
           const last = thread[thread.length - 1];
           return {
@@ -41,7 +44,7 @@ export function DemoMessagesScreen() {
             unread_count: thread.filter((message) => message.sender_id === profile.id).slice(-3).length
           };
         }),
-    [currentUser?.id, query, state.messages, state.profiles]
+    [query, state.messages, state.profiles, viewer?.id]
   );
 
   useEffect(() => {
@@ -57,20 +60,16 @@ export function DemoMessagesScreen() {
   const thread = state.messages.filter(
     (message) =>
       activeConversation &&
-      ((message.sender_id === activeConversation.participant.id && message.receiver_id === currentUser?.id) ||
-        (message.sender_id === currentUser?.id && message.receiver_id === activeConversation.participant.id))
+      ((message.sender_id === activeConversation.participant.id && message.receiver_id === viewer?.id) ||
+        (message.sender_id === viewer?.id && message.receiver_id === activeConversation.participant.id))
   );
 
   if (!isReady) {
     return <DemoLoadingScreen />;
   }
 
-  if (!currentUser) {
-    return null;
-  }
-
   return (
-    <AppShell title="Messages" subtitle="Direct conversations that turn online connections into real plans." city={currentUser.current_city}>
+    <AppShell title="Messages" subtitle="Direct conversations that turn online connections into real plans." city={viewer.current_city}>
       <div className="grid gap-6 lg:grid-cols-[320px_1fr]">
         <div className="space-y-4">
           <Card className="p-4">
@@ -88,6 +87,14 @@ export function DemoMessagesScreen() {
           />
         </div>
         <Card className="flex h-[520px] flex-col gap-4">
+          {!currentUser ? (
+            <div className="flex items-center justify-between gap-3 rounded-xl bg-slate-50 p-3 text-sm text-muted">
+              <span>Preview mode is read-only for messaging.</span>
+              <Link href="/auth/signup" className="font-medium text-primary">
+                Start demo
+              </Link>
+            </div>
+          ) : null}
           {activeConversation ? (
             <div className="border-b border-slate-100 pb-4">
               <p className="font-semibold">{activeConversation.participant.name}</p>
@@ -100,7 +107,7 @@ export function DemoMessagesScreen() {
             {!activeConversation ? <p className="text-sm text-muted">No conversation matches this search.</p> : null}
             {activeConversation && thread.length === 0 ? <p className="text-sm text-muted">No messages yet. Start the conversation.</p> : null}
             {thread.map((message) => (
-              <MessageBubble key={message.id} content={message.content} isOwnMessage={message.sender_id === currentUser.id} />
+              <MessageBubble key={message.id} content={message.content} isOwnMessage={message.sender_id === viewer.id} />
             ))}
           </div>
           <div className="flex gap-3">
@@ -122,7 +129,7 @@ export function DemoMessagesScreen() {
                   window.setTimeout(() => setFeedback(null), 1500);
                 }
               }}
-              disabled={!activeConversation}
+              disabled={!activeConversation || !currentUser}
             >
               Send
             </Button>

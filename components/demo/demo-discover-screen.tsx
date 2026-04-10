@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Link from "next/link";
 
 import { AppShell } from "@/components/app-shell";
 import { CommunitySuggestionCard } from "@/components/community-suggestion-card";
@@ -9,23 +10,26 @@ import { DiscoverSection } from "@/components/discover-section";
 import { UserSuggestionCard } from "@/components/user-suggestion-card";
 import { useDemo } from "@/components/demo/demo-provider";
 import { rankPeopleLikeYou, rankRecentArrivals, rankSuggestedCommunities } from "@/lib/demo/recommendations";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 
 export function DemoDiscoverScreen() {
   const { currentUser, isReady, state } = useDemo();
   const [query, setQuery] = useState("");
 
   const data = useMemo(() => {
-    if (!currentUser) {
+    const viewer = currentUser ?? state.profiles[0];
+    if (!viewer) {
       return { people: [], recentArrivals: [], communities: [] };
     }
 
-    const people = rankPeopleLikeYou(currentUser, state.profiles).filter((profile) =>
+    const people = rankPeopleLikeYou(viewer, state.profiles).filter((profile) =>
       profile.name.toLowerCase().includes(query.toLowerCase())
     );
-    const recentArrivals = rankRecentArrivals(currentUser, state.profiles).filter((profile) =>
+    const recentArrivals = rankRecentArrivals(viewer, state.profiles).filter((profile) =>
       profile.name.toLowerCase().includes(query.toLowerCase())
     );
-    const communities = rankSuggestedCommunities(currentUser, state.communities).filter((community) =>
+    const communities = rankSuggestedCommunities(viewer, state.communities).filter((community) =>
       community.name.toLowerCase().includes(query.toLowerCase())
     );
 
@@ -40,13 +44,19 @@ export function DemoDiscoverScreen() {
     return <DemoLoadingScreen />;
   }
 
-  if (!currentUser) {
-    return null;
-  }
+  const viewer = currentUser ?? state.profiles[0];
 
   return (
-    <AppShell title="Discover" subtitle="Relevant people, prompts, and communities around your location." city={currentUser.current_city}>
+    <AppShell title="Discover" subtitle="Relevant people, prompts, and communities around your location." city={viewer.current_city}>
       <div className="space-y-6">
+        {!currentUser ? (
+          <Card className="flex flex-wrap items-center justify-between gap-3">
+            <p className="text-sm text-muted">Preview recommendations are based on the seeded Berlin profile. Start demo to personalize.</p>
+            <Link href="/auth/signup">
+              <Button>Start demo</Button>
+            </Link>
+          </Card>
+        ) : null}
         <DiscoverSection title="Search" description="Filter people and communities in your local graph.">
           <input
             className="w-full rounded-xl border border-border px-4 py-3 text-sm"
