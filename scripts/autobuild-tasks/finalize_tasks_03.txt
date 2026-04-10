@@ -1,0 +1,3 @@
+Run final QA hardening pass across auth, feed, communities, discover, messages, profile.
+Eliminate remaining high-severity bugs and regressions.
+Produce final release readiness summary with blockers and go/no-go.

@@ -1,0 +1,3 @@
+Stabilize routing and navigation flows.
+Finalize auth/session edge cases and error states.
+Fix high-priority UI polish and responsive issues.
