@@ -21,7 +21,8 @@ export async function middleware(request: NextRequest) {
   if (guestRequested) {
     const url = request.nextUrl.clone();
     url.searchParams.delete("guest");
-    response = NextResponse.redirect(url);
+    const destination = isAuthRoute ? new URL("/", request.url) : url;
+    response = NextResponse.redirect(destination);
     response.cookies.set("friendaway_guest", "1", {
       path: "/",
       httpOnly: false,
