@@ -3,6 +3,7 @@ import Link from "next/link";
 import { signup } from "@/app/auth/actions";
 import { AuthForm } from "@/components/auth/auth-form";
 import { DemoAuthPage } from "@/components/demo/demo-auth-page";
+import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { isPublicPreviewMode } from "@/lib/supabase/env";
 
@@ -53,6 +54,11 @@ export default function SignupPage() {
             </div>
           }
         />
+        <div className="flex justify-end">
+          <Link href="/auth/login?guest=1">
+            <Button variant="secondary">Continue as guest</Button>
+          </Link>
+        </div>
         <p className="text-sm text-muted">
           Already have an account?{" "}
           <Link href="/auth/login" className="font-medium text-primary">

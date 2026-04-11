@@ -5,6 +5,8 @@ import { getSupabasePublishableKey, getSupabaseUrl, hasSupabasePublicEnv, isPubl
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const previewMode = isPublicPreviewMode();
+  const guestRequested = request.nextUrl.searchParams.get("guest") === "1";
+  const guestMode = request.cookies.get("friendaway_guest")?.value === "1";
   const isAuthRoute = pathname.startsWith("/auth");
   const isPublicRoute = isAuthRoute || pathname.startsWith("/api") || pathname === "/favicon.ico";
 
@@ -15,6 +17,18 @@ export async function middleware(request: NextRequest) {
   let response = NextResponse.next({
     request
   });
+
+  if (guestRequested) {
+    const url = request.nextUrl.clone();
+    url.searchParams.delete("guest");
+    response = NextResponse.redirect(url);
+    response.cookies.set("friendaway_guest", "1", {
+      path: "/",
+      httpOnly: false,
+      sameSite: "lax"
+    });
+    return response;
+  }
 
   try {
     const supabase = createServerClient(getSupabaseUrl(), getSupabasePublishableKey(), {
@@ -43,7 +57,7 @@ export async function middleware(request: NextRequest) {
       data: { user }
     } = await supabase.auth.getUser();
 
-    if (!user && !isPublicRoute && !previewMode) {
+    if (!user && !isPublicRoute && !previewMode && !guestMode) {
       return NextResponse.redirect(new URL("/auth/login", request.url));
     }
 

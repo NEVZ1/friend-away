@@ -3,6 +3,7 @@ import Link from "next/link";
 import { login } from "@/app/auth/actions";
 import { AuthForm } from "@/components/auth/auth-form";
 import { DemoAuthPage } from "@/components/demo/demo-auth-page";
+import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { isPublicPreviewMode } from "@/lib/supabase/env";
 
@@ -39,6 +40,11 @@ export default function LoginPage() {
             </>
           }
         />
+        <div className="flex justify-end">
+          <Link href="/auth/login?guest=1">
+            <Button variant="secondary">Continue as guest</Button>
+          </Link>
+        </div>
         <div className="rounded-xl bg-slate-50 p-4 text-sm text-muted">
           Demo mode works without Supabase, but real auth requires `.env.local` values.
         </div>
