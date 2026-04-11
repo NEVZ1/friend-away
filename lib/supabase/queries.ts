@@ -25,35 +25,39 @@ export async function getCurrentUser(): Promise<UserProfile> {
     return currentUser;
   }
 
-  const supabase = await createClient();
-  const {
-    data: { user }
-  } = await supabase.auth.getUser();
+  try {
+    const supabase = await createClient();
+    const {
+      data: { user }
+    } = await supabase.auth.getUser();
 
-  if (!user) {
+    if (!user) {
+      return currentUser;
+    }
+
+    const { data } = await (supabase.from("users") as any).select("*").eq("id", user.id).maybeSingle();
+    const profile = data as Partial<UserProfile> | null;
+
+    if (!profile) {
+      return currentUser;
+    }
+
+    return {
+      id: profile.id ?? currentUser.id,
+      name: profile.name ?? currentUser.name,
+      email: profile.email ?? currentUser.email,
+      country_origin: profile.country_origin ?? currentUser.country_origin,
+      current_city: profile.current_city ?? currentUser.current_city,
+      arrival_date: profile.arrival_date ?? currentUser.arrival_date,
+      user_type: (profile.user_type as UserProfile["user_type"] | null) ?? currentUser.user_type,
+      bio: profile.bio ?? currentUser.bio,
+      avatar_url: profile.avatar_url ?? currentUser.avatar_url,
+      onboarding_completed: profile.onboarding_completed ?? currentUser.onboarding_completed,
+      created_at: profile.created_at ?? currentUser.created_at
+    };
+  } catch (_error) {
     return currentUser;
   }
-
-  const { data } = await (supabase.from("users") as any).select("*").eq("id", user.id).maybeSingle();
-  const profile = data as Partial<UserProfile> | null;
-
-  if (!profile) {
-    return currentUser;
-  }
-
-  return {
-    id: profile.id ?? currentUser.id,
-    name: profile.name ?? currentUser.name,
-    email: profile.email ?? currentUser.email,
-    country_origin: profile.country_origin ?? currentUser.country_origin,
-    current_city: profile.current_city ?? currentUser.current_city,
-    arrival_date: profile.arrival_date ?? currentUser.arrival_date,
-    user_type: (profile.user_type as UserProfile["user_type"] | null) ?? currentUser.user_type,
-    bio: profile.bio ?? currentUser.bio,
-    avatar_url: profile.avatar_url ?? currentUser.avatar_url,
-    onboarding_completed: profile.onboarding_completed ?? currentUser.onboarding_completed,
-    created_at: profile.created_at ?? currentUser.created_at
-  };
 }
 
 export async function getCurrentSession() {
@@ -61,12 +65,16 @@ export async function getCurrentSession() {
     return { user: null };
   }
 
-  const supabase = await createClient();
-  const {
-    data: { user }
-  } = await supabase.auth.getUser();
+  try {
+    const supabase = await createClient();
+    const {
+      data: { user }
+    } = await supabase.auth.getUser();
 
-  return { user };
+    return { user };
+  } catch (_error) {
+    return { user: null };
+  }
 }
 
 export async function getCityFeed(city: string): Promise<Post[]> {
@@ -74,33 +82,37 @@ export async function getCityFeed(city: string): Promise<Post[]> {
     return posts.filter((post) => post.city === city);
   }
 
-  const supabase = await createClient();
-  const postsTable = supabase.from("posts") as any;
-  const { data, error } = await postsTable
-    .select("id, user_id, community_id, city, content, media_urls, created_at")
-    .eq("city", city)
-    .order("created_at", { ascending: false })
-    .limit(50);
+  try {
+    const supabase = await createClient();
+    const postsTable = supabase.from("posts") as any;
+    const { data, error } = await postsTable
+      .select("id, user_id, community_id, city, content, media_urls, created_at")
+      .eq("city", city)
+      .order("created_at", { ascending: false })
+      .limit(50);
 
-  if (error || !data) {
+    if (error || !data) {
+      return posts.filter((post) => post.city === city);
+    }
+
+    return (data as Array<{
+      id: string;
+      user_id: string;
+      community_id: string | null;
+      city: string;
+      content: string;
+      media_urls?: string[] | null;
+      created_at: string;
+    }>).map((post) => ({
+      ...post,
+      media_urls: post.media_urls ?? [],
+      author: currentUser,
+      comments_count: 0,
+      community: communities.find((community) => community.id === post.community_id) ?? null
+    }));
+  } catch (_error) {
     return posts.filter((post) => post.city === city);
   }
-
-  return (data as Array<{
-    id: string;
-    user_id: string;
-    community_id: string | null;
-    city: string;
-    content: string;
-    media_urls?: string[] | null;
-    created_at: string;
-  }>).map((post) => ({
-    ...post,
-    media_urls: post.media_urls ?? [],
-    author: currentUser,
-    comments_count: 0,
-    community: communities.find((community) => community.id === post.community_id) ?? null
-  }));
 }
 
 export async function getCommentsForPost(postId: string): Promise<Comment[]> {
@@ -108,21 +120,25 @@ export async function getCommentsForPost(postId: string): Promise<Comment[]> {
     return comments.filter((comment) => comment.post_id === postId);
   }
 
-  const supabase = await createClient();
-  const commentsTable = supabase.from("comments") as any;
-  const { data, error } = await commentsTable
-    .select("id, post_id, user_id, content, created_at")
-    .eq("post_id", postId)
-    .order("created_at", { ascending: true });
+  try {
+    const supabase = await createClient();
+    const commentsTable = supabase.from("comments") as any;
+    const { data, error } = await commentsTable
+      .select("id, post_id, user_id, content, created_at")
+      .eq("post_id", postId)
+      .order("created_at", { ascending: true });
 
-  if (error || !data) {
+    if (error || !data) {
+      return comments.filter((comment) => comment.post_id === postId);
+    }
+
+    return (data as Array<{ id: string; post_id: string; user_id: string; content: string; created_at: string }>).map((comment) => ({
+      ...comment,
+      author: people.find((person) => person.id === comment.user_id) ?? currentUser
+    }));
+  } catch (_error) {
     return comments.filter((comment) => comment.post_id === postId);
   }
-
-  return (data as Array<{ id: string; post_id: string; user_id: string; content: string; created_at: string }>).map((comment) => ({
-    ...comment,
-    author: people.find((person) => person.id === comment.user_id) ?? currentUser
-  }));
 }
 
 export async function getCommunities(city?: string): Promise<Community[]> {
@@ -134,20 +150,24 @@ export async function getCommunities(city?: string): Promise<Community[]> {
     return communities.filter((community) => community.city === city);
   }
 
-  const supabase = await createClient();
-  let query = (supabase.from("communities") as any).select("*").order("created_at", { ascending: false });
+  try {
+    const supabase = await createClient();
+    let query = (supabase.from("communities") as any).select("*").order("created_at", { ascending: false });
 
-  if (city) {
-    query = query.eq("city", city);
-  }
+    if (city) {
+      query = query.eq("city", city);
+    }
 
-  const { data, error } = await query;
+    const { data, error } = await query;
 
-  if (error || !data) {
+    if (error || !data) {
+      return city ? communities.filter((community) => community.city === city) : communities;
+    }
+
+    return data as Community[];
+  } catch (_error) {
     return city ? communities.filter((community) => community.city === city) : communities;
   }
-
-  return data as Community[];
 }
 
 export async function getRelevantCommunities(user: UserProfile): Promise<Community[]> {
@@ -198,46 +218,61 @@ export async function getDiscoverData(city: string) {
     };
   }
 
-  const supabase = await createClient();
-  const usersTable = supabase.from("users") as any;
-  const followsTable = supabase.from("follows") as any;
+  try {
+    const supabase = await createClient();
+    const usersTable = supabase.from("users") as any;
+    const followsTable = supabase.from("follows") as any;
 
-  const { data: suggestedUsers } = await usersTable
-    .select("*")
-    .neq("id", user.id)
-    .or(`current_city.eq.${city},country_origin.eq.${user.country_origin}`)
-    .limit(40);
+    const { data: suggestedUsers } = await usersTable
+      .select("*")
+      .neq("id", user.id)
+      .or(`current_city.eq.${city},country_origin.eq.${user.country_origin}`)
+      .limit(40);
 
-  const { data: followingRows } = await followsTable
-    .select("following_id")
-    .eq("follower_id", user.id);
+    const { data: followingRows } = await followsTable
+      .select("following_id")
+      .eq("follower_id", user.id);
 
-  const mappedUsers = ((suggestedUsers ?? []) as Array<Partial<UserProfile>>).map((profile) => ({
-    id: profile.id ?? "",
-    name: profile.name ?? "Unknown user",
-    email: profile.email ?? "",
-    country_origin: profile.country_origin ?? "Unknown",
-    current_city: profile.current_city ?? city,
-    arrival_date: profile.arrival_date ?? user.arrival_date,
-    user_type: (profile.user_type as UserProfile["user_type"] | null) ?? "other",
-    bio: profile.bio ?? "",
-    avatar_url: profile.avatar_url ?? currentUser.avatar_url,
-    onboarding_completed: profile.onboarding_completed ?? true,
-    created_at: profile.created_at ?? new Date().toISOString()
-  }));
+    const mappedUsers = ((suggestedUsers ?? []) as Array<Partial<UserProfile>>).map((profile) => ({
+      id: profile.id ?? "",
+      name: profile.name ?? "Unknown user",
+      email: profile.email ?? "",
+      country_origin: profile.country_origin ?? "Unknown",
+      current_city: profile.current_city ?? city,
+      arrival_date: profile.arrival_date ?? user.arrival_date,
+      user_type: (profile.user_type as UserProfile["user_type"] | null) ?? "other",
+      bio: profile.bio ?? "",
+      avatar_url: profile.avatar_url ?? currentUser.avatar_url,
+      onboarding_completed: profile.onboarding_completed ?? true,
+      created_at: profile.created_at ?? new Date().toISOString()
+    }));
 
-  const followingIds = ((followingRows ?? []) as Array<{ following_id: string }>).map((row) => row.following_id);
+    const followingIds = ((followingRows ?? []) as Array<{ following_id: string }>).map((row) => row.following_id);
 
-  return {
-    prompts: suggestedPrompts,
-    people: mappedUsers.filter((person) => person.current_city === city || person.country_origin === user.country_origin),
-    recentArrivals: mappedUsers.filter(
-      (person) => person.current_city === city && getArrivalCohort(person.arrival_date) === getArrivalCohort(user.arrival_date)
-    ),
-    posts: cityPosts,
-    communities: cityCommunities,
-    followingIds
-  };
+    return {
+      prompts: suggestedPrompts,
+      people: mappedUsers.filter((person) => person.current_city === city || person.country_origin === user.country_origin),
+      recentArrivals: mappedUsers.filter(
+        (person) => person.current_city === city && getArrivalCohort(person.arrival_date) === getArrivalCohort(user.arrival_date)
+      ),
+      posts: cityPosts,
+      communities: cityCommunities,
+      followingIds
+    };
+  } catch (_error) {
+    return {
+      prompts: suggestedPrompts,
+      people: peopleLikeYou.filter(
+        (person) => person.current_city === city || person.country_origin === user.country_origin
+      ),
+      recentArrivals: peopleLikeYou.filter(
+        (person) => person.current_city === city && getArrivalCohort(person.arrival_date) === getArrivalCohort(user.arrival_date)
+      ),
+      posts: cityPosts,
+      communities: cityCommunities,
+      followingIds: follows.filter((follow) => follow.follower_id === user.id).map((follow) => follow.following_id)
+    };
+  }
 }
 
 export async function getMessages(): Promise<Message[]> {
@@ -245,19 +280,23 @@ export async function getMessages(): Promise<Message[]> {
     return messages;
   }
 
-  const supabase = await createClient();
-  const user = await getCurrentUser();
-  const messagesTable = supabase.from("messages") as any;
-  const { data, error } = await messagesTable
-    .select("*")
-    .or(`sender_id.eq.${user.id},receiver_id.eq.${user.id}`)
-    .order("created_at", { ascending: true });
+  try {
+    const supabase = await createClient();
+    const user = await getCurrentUser();
+    const messagesTable = supabase.from("messages") as any;
+    const { data, error } = await messagesTable
+      .select("*")
+      .or(`sender_id.eq.${user.id},receiver_id.eq.${user.id}`)
+      .order("created_at", { ascending: true });
 
-  if (error || !data) {
+    if (error || !data) {
+      return messages;
+    }
+
+    return data as Message[];
+  } catch (_error) {
     return messages;
   }
-
-  return data as Message[];
 }
 
 export async function getConversations(): Promise<Conversation[]> {
@@ -269,20 +308,24 @@ export async function getNotifications(): Promise<NotificationItem[]> {
     return notifications;
   }
 
-  const supabase = await createClient();
-  const user = await getCurrentUser();
-  const notificationsTable = supabase.from("notifications") as any;
-  const { data, error } = await notificationsTable
-    .select("*")
-    .eq("user_id", user.id)
-    .order("created_at", { ascending: false })
-    .limit(100);
+  try {
+    const supabase = await createClient();
+    const user = await getCurrentUser();
+    const notificationsTable = supabase.from("notifications") as any;
+    const { data, error } = await notificationsTable
+      .select("*")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false })
+      .limit(100);
 
-  if (error || !data) {
-    return notifications.filter((item) => item.user_id === user.id);
+    if (error || !data) {
+      return notifications.filter((item) => item.user_id === user.id);
+    }
+
+    return data as NotificationItem[];
+  } catch (_error) {
+    return notifications;
   }
-
-  return data as NotificationItem[];
 }
 
 export async function getFollowStats(userId: string) {
@@ -293,15 +336,22 @@ export async function getFollowStats(userId: string) {
     };
   }
 
-  const supabase = await createClient();
-  const followsTable = supabase.from("follows") as any;
-  const [{ count: followerCount }, { count: followingCount }] = await Promise.all([
-    followsTable.select("id", { head: true, count: "exact" }).eq("following_id", userId),
-    followsTable.select("id", { head: true, count: "exact" }).eq("follower_id", userId)
-  ]);
+  try {
+    const supabase = await createClient();
+    const followsTable = supabase.from("follows") as any;
+    const [{ count: followerCount }, { count: followingCount }] = await Promise.all([
+      followsTable.select("id", { head: true, count: "exact" }).eq("following_id", userId),
+      followsTable.select("id", { head: true, count: "exact" }).eq("follower_id", userId)
+    ]);
 
-  return {
-    followers: followerCount ?? 0,
-    following: followingCount ?? 0
-  };
+    return {
+      followers: followerCount ?? 0,
+      following: followingCount ?? 0
+    };
+  } catch (_error) {
+    return {
+      followers: follows.filter((follow) => follow.following_id === userId).length,
+      following: follows.filter((follow) => follow.follower_id === userId).length
+    };
+  }
 }
