@@ -61,7 +61,7 @@ describe("demo auth ui", () => {
     const user = userEvent.setup();
     render(<LoginHarness />, { wrapper: Providers });
     await user.click(screen.getByRole("button", { name: /Aylin/i }));
-    expect(screen.getByText("Quick login")).toBeInTheDocument();
+    expect(screen.getByText("Fast entry")).toBeInTheDocument();
   });
 });
 
