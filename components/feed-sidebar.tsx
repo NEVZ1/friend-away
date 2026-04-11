@@ -2,12 +2,17 @@ import { ArrowRight, Globe2, Sparkles, Users } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { communities, peopleLikeYou } from "@/lib/mock-data";
+import { communities, peopleLikeYou, posts } from "@/lib/mock-data";
 import type { UserProfile } from "@/lib/types";
 import { UserAvatar } from "@/components/user-avatar";
 import { getArrivalCohort } from "@/lib/utils";
 
 export function FeedSidebar({ user }: { user: UserProfile }) {
+  const trendingPosts = posts
+    .filter((post) => post.city === user.current_city)
+    .sort((a, b) => (b.likes_count ?? 0) - (a.likes_count ?? 0))
+    .slice(0, 2);
+
   return (
     <div className="space-y-4">
       <Card className="space-y-3">
@@ -44,12 +49,18 @@ export function FeedSidebar({ user }: { user: UserProfile }) {
       <Card className="space-y-3">
         <div className="flex items-center gap-2 text-accent">
           <Globe2 className="h-4 w-4" />
-          <p className="text-sm font-semibold">Trending communities</p>
+          <p className="text-sm font-semibold">Trending now</p>
         </div>
         {communities.slice(0, 2).map((community) => (
           <div key={community.id} className="rounded-xl bg-slate-50 p-3">
             <p className="text-sm font-semibold">{community.name}</p>
             <p className="text-xs text-muted">{community.members_count} members</p>
+          </div>
+        ))}
+        {trendingPosts.map((post) => (
+          <div key={post.id} className="rounded-xl bg-slate-50 p-3">
+            <p className="line-clamp-2 text-sm font-semibold">{post.content}</p>
+            <p className="mt-1 text-xs text-muted">{post.likes_count ?? 0} likes</p>
           </div>
         ))}
       </Card>

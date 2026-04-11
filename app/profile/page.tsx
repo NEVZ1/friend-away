@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/empty-state";
 import { PostCard } from "@/components/post-card";
 import { ProfileHeader } from "@/components/profile-header";
-import { getCityFeed, getCurrentUser, hasSupabaseEnv } from "@/lib/supabase/queries";
+import { getCityFeed, getCurrentUser, getFollowStats, hasSupabaseEnv } from "@/lib/supabase/queries";
 
 export default async function ProfilePage() {
   if (!hasSupabaseEnv()) {
@@ -15,7 +15,7 @@ export default async function ProfilePage() {
   }
 
   const user = await getCurrentUser();
-  const feed = await getCityFeed(user.current_city);
+  const [feed, followStats] = await Promise.all([getCityFeed(user.current_city), getFollowStats(user.id)]);
 
   return (
     <AppShell title="Profile" subtitle="Your story, local context, and the conversations you’re starting." city={user.current_city}>
@@ -50,6 +50,14 @@ export default async function ProfilePage() {
             <div className="rounded-xl bg-slate-50 p-4">
               <p className="text-sm text-muted">Messages this week</p>
               <p className="mt-2 text-2xl font-semibold">18</p>
+            </div>
+            <div className="rounded-xl bg-slate-50 p-4">
+              <p className="text-sm text-muted">Followers</p>
+              <p className="mt-2 text-2xl font-semibold">{followStats.followers}</p>
+            </div>
+            <div className="rounded-xl bg-slate-50 p-4">
+              <p className="text-sm text-muted">Following</p>
+              <p className="mt-2 text-2xl font-semibold">{followStats.following}</p>
             </div>
           </Card>
         </div>

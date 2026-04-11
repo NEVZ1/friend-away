@@ -27,6 +27,8 @@ export function DemoProfileScreen() {
   ).length;
   const recentComments = state.comments.filter((comment) => comment.user_id === viewer.id).slice(-3).reverse();
   const recentCommunityNames = joined.slice(0, 3).map((community) => community.name);
+  const followingCount = state.follows.filter((follow) => follow.follower_id === viewer.id).length;
+  const followerCount = state.follows.filter((follow) => follow.following_id === viewer.id).length;
 
   return (
     <AppShell title="Profile" subtitle="Your story, local context, and the conversations you’re starting." city={viewer.current_city}>
@@ -69,6 +71,14 @@ export function DemoProfileScreen() {
             <div className="rounded-xl bg-slate-50 p-4">
               <p className="text-sm text-muted">Messages in demo inbox</p>
               <p className="mt-2 text-2xl font-semibold">{messageCount}</p>
+            </div>
+            <div className="rounded-xl bg-slate-50 p-4">
+              <p className="text-sm text-muted">Followers</p>
+              <p className="mt-2 text-2xl font-semibold">{followerCount}</p>
+            </div>
+            <div className="rounded-xl bg-slate-50 p-4">
+              <p className="text-sm text-muted">Following</p>
+              <p className="mt-2 text-2xl font-semibold">{followingCount}</p>
             </div>
             <div className="rounded-xl bg-slate-50 p-4">
               <p className="text-sm text-muted">Recent community footprint</p>

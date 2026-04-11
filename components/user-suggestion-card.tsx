@@ -5,7 +5,17 @@ import { Card } from "@/components/ui/card";
 import { UserAvatar } from "@/components/user-avatar";
 import type { UserProfile } from "@/lib/types";
 
-export function UserSuggestionCard({ user }: { user: UserProfile }) {
+export function UserSuggestionCard({
+  user,
+  isFollowing = false,
+  onToggleFollow,
+  action
+}: {
+  user: UserProfile;
+  isFollowing?: boolean;
+  onToggleFollow?: (userId: string) => void;
+  action?: React.ReactNode;
+}) {
   return (
     <Card className="flex items-center gap-4">
       <UserAvatar name={user.name} avatarUrl={user.avatar_url} className="h-12 w-12" />
@@ -19,7 +29,14 @@ export function UserSuggestionCard({ user }: { user: UserProfile }) {
           {user.current_city}
         </p>
       </div>
-      <Button variant="secondary">Connect</Button>
+      {action ?? (
+        <Button
+          variant={isFollowing ? "ghost" : "secondary"}
+          onClick={() => onToggleFollow?.(user.id)}
+        >
+          {isFollowing ? "Following" : "Connect"}
+        </Button>
+      )}
     </Card>
   );
 }

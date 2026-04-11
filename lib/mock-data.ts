@@ -1,4 +1,4 @@
-import { Community, Message, NotificationItem, Post, UserProfile } from "@/lib/types";
+import { Community, FollowRelation, Message, NotificationItem, Post, UserProfile } from "@/lib/types";
 
 export const currentUser: UserProfile = {
   id: "user-1",
@@ -271,5 +271,20 @@ export const notifications: NotificationItem[] = [
     text: "Tip: complete your profile to get better city recommendations.",
     created_at: "2026-03-10T08:10:00.000Z",
     read: true
+  }
+];
+
+export const follows: FollowRelation[] = [
+  {
+    id: "follow-1",
+    follower_id: "user-1",
+    following_id: "user-2",
+    created_at: "2026-03-10T08:05:00.000Z"
+  },
+  {
+    id: "follow-2",
+    follower_id: "user-3",
+    following_id: "user-1",
+    created_at: "2026-03-10T08:11:00.000Z"
   }
 ];

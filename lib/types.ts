@@ -79,3 +79,10 @@ export type NotificationItem = {
   created_at: string;
   read: boolean;
 };
+
+export type FollowRelation = {
+  id: string;
+  follower_id: string;
+  following_id: string;
+  created_at: string;
+};

@@ -14,11 +14,28 @@ const seededAccounts = [
   { name: "Mateus", email: "mateus@example.com" },
   { name: "Sofia", email: "sofia@example.com" }
 ];
+const guestNamePool = [
+  ["Alex", "Guest"],
+  ["Mina", "Visitor"],
+  ["Noah", "Explorer"],
+  ["Lara", "Traveller"]
+];
 
 export function DemoAuthPage({ mode }: { mode: "login" | "signup" }) {
   const router = useRouter();
   const { login, quickStart, resetDemo } = useDemo();
   const [error, setError] = useState<string | null>(null);
+
+  function startGuestSession() {
+    const index = Date.now() % guestNamePool.length;
+    const [first, last] = guestNamePool[index];
+    const result = quickStart({ first_name: first, last_name: last });
+    if (result.error) {
+      setError(result.error);
+      return;
+    }
+    router.push("/");
+  }
 
   function onSubmit(formData: FormData) {
     if (mode === "login") {
@@ -58,7 +75,16 @@ export function DemoAuthPage({ mode }: { mode: "login" | "signup" }) {
         </div>
         {mode === "login" ? (
           <div className="space-y-3">
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted">Quick login</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted">Fast entry</p>
+            <button
+              type="button"
+              onClick={startGuestSession}
+              className="w-full rounded-xl border border-primary/20 bg-primary/5 px-4 py-3 text-left transition hover:bg-primary/10"
+            >
+              <p className="text-sm font-semibold text-primary">Continue as guest</p>
+              <p className="text-xs text-muted">Instant dashboard access, no typing required.</p>
+            </button>
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted">Seeded accounts</p>
             <div className="grid gap-2 md:grid-cols-3">
               {seededAccounts.map((account) => (
                 <button
@@ -102,7 +128,13 @@ export function DemoAuthPage({ mode }: { mode: "login" | "signup" }) {
             </>
           ) : null}
           {mode === "login" ? (
-            <input className="w-full rounded-xl border border-border px-4 py-3" placeholder="Email" type="email" name="email" />
+            <input
+              className="w-full rounded-xl border border-border px-4 py-3"
+              placeholder="Email"
+              type="email"
+              name="email"
+              autoFocus
+            />
           ) : null}
           {error ? <p className={mode === "login" ? "text-sm text-rose-500" : "text-sm text-rose-500 md:col-span-2"}>{error}</p> : null}
           <Button className={mode === "login" ? "w-full" : "md:col-span-2"}>

@@ -10,11 +10,13 @@ import {
   createDemoPost,
   getCurrentDemoUser,
   loginDemo,
+  markAllNotificationsRead,
   logoutDemo,
   quickStartDemo,
   sendDemoMessage,
   signupDemo,
   toggleDemoLike,
+  toggleDemoFollow,
   toggleDemoSave,
   toggleDemoCommunityMembership,
   reportDemoPost,
@@ -43,6 +45,9 @@ type DemoContextValue = {
   toggleLikePost: (postId: string) => { error?: string };
   toggleSavePost: (postId: string) => { error?: string };
   reportPost: (postId: string) => void;
+  markNotificationsRead: () => void;
+  toggleFollowUser: (userId: string) => { error?: string };
+  isFollowingUser: (userId: string) => boolean;
   resetDemo: () => void;
 };
 
@@ -57,7 +62,14 @@ export function DemoProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const raw = window.localStorage.getItem(STORAGE_KEY);
     if (raw) {
-      setState(JSON.parse(raw) as DemoState);
+      const parsed = JSON.parse(raw) as Partial<DemoState>;
+      const seed = buildSeedState();
+      setState({
+        ...seed,
+        ...parsed,
+        notifications: parsed.notifications ?? seed.notifications,
+        follows: parsed.follows ?? seed.follows
+      });
     }
     setIsReady(true);
   }, []);
@@ -134,6 +146,18 @@ export function DemoProvider({ children }: { children: React.ReactNode }) {
       reportPost(postId) {
         const result = reportDemoPost(state, postId);
         setState(result.state);
+      },
+      markNotificationsRead() {
+        setState((current) => markAllNotificationsRead(current));
+      },
+      toggleFollowUser(userId) {
+        const result = toggleDemoFollow(state, userId);
+        setState(result.state);
+        return result.error ? { error: result.error } : {};
+      },
+      isFollowingUser(userId) {
+        if (!currentUser) return false;
+        return state.follows.some((follow) => follow.follower_id === currentUser.id && follow.following_id === userId);
       },
       resetDemo() {
         const nextState = buildSeedState();

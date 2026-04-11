@@ -7,6 +7,7 @@ import { AppShell } from "@/components/app-shell";
 import { CommunitySuggestionCard } from "@/components/community-suggestion-card";
 import { DemoLoadingScreen } from "@/components/demo/demo-loading-screen";
 import { DiscoverSection } from "@/components/discover-section";
+import { InviteCard } from "@/components/invite-card";
 import { UserSuggestionCard } from "@/components/user-suggestion-card";
 import { useDemo } from "@/components/demo/demo-provider";
 import { rankPeopleLikeYou, rankRecentArrivals, rankSuggestedCommunities } from "@/lib/demo/recommendations";
@@ -14,8 +15,9 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 
 export function DemoDiscoverScreen() {
-  const { currentUser, isReady, state } = useDemo();
+  const { currentUser, isFollowingUser, isReady, state, toggleFollowUser } = useDemo();
   const [query, setQuery] = useState("");
+  const [feedback, setFeedback] = useState<string | null>(null);
 
   const data = useMemo(() => {
     const viewer = currentUser ?? state.profiles[0];
@@ -76,7 +78,20 @@ export function DemoDiscoverScreen() {
               <div className="space-y-3">
                 {data.people.length === 0 ? <p className="text-sm text-muted">No people match this search yet.</p> : null}
                 {data.people.map((person) => (
-                  <UserSuggestionCard key={person.id} user={person} />
+                  <UserSuggestionCard
+                    key={person.id}
+                    user={person}
+                    isFollowing={isFollowingUser(person.id)}
+                    onToggleFollow={(userId) => {
+                      const result = toggleFollowUser(userId);
+                      if (result.error) {
+                        setFeedback(result.error);
+                        return;
+                      }
+                      setFeedback("Connection updated");
+                      window.setTimeout(() => setFeedback(null), 1200);
+                    }}
+                  />
                 ))}
               </div>
             </DiscoverSection>
@@ -84,7 +99,20 @@ export function DemoDiscoverScreen() {
               <div className="space-y-3">
                 {data.recentArrivals.length === 0 ? <p className="text-sm text-muted">No matching arrival cohort yet.</p> : null}
                 {data.recentArrivals.map((person) => (
-                  <UserSuggestionCard key={person.id} user={person} />
+                  <UserSuggestionCard
+                    key={person.id}
+                    user={person}
+                    isFollowing={isFollowingUser(person.id)}
+                    onToggleFollow={(userId) => {
+                      const result = toggleFollowUser(userId);
+                      if (result.error) {
+                        setFeedback(result.error);
+                        return;
+                      }
+                      setFeedback("Connection updated");
+                      window.setTimeout(() => setFeedback(null), 1200);
+                    }}
+                  />
                 ))}
               </div>
             </DiscoverSection>
@@ -112,7 +140,9 @@ export function DemoDiscoverScreen() {
               ))}
             </div>
           </DiscoverSection>
+          <InviteCard city={viewer.current_city} />
         </div>
+        {feedback ? <p className="text-sm text-accent">{feedback}</p> : null}
       </div>
     </AppShell>
   );

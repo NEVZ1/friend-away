@@ -72,6 +72,18 @@ create table if not exists public.reports (
   created_at timestamptz not null default timezone('utc', now())
 );
 
+create table if not exists public.notifications (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references public.users (id) on delete cascade,
+  actor_name text not null,
+  type text not null check (type in ('like', 'comment', 'message', 'community_join', 'system')),
+  text text not null,
+  related_post_id uuid references public.posts (id) on delete set null,
+  related_user_id uuid references public.users (id) on delete set null,
+  read boolean not null default false,
+  created_at timestamptz not null default timezone('utc', now())
+);
+
 create index if not exists idx_users_current_city on public.users (current_city);
 create index if not exists idx_communities_city on public.communities (city);
 create index if not exists idx_posts_city_created_at on public.posts (city, created_at desc);
@@ -79,6 +91,8 @@ create index if not exists idx_posts_user_id on public.posts (user_id);
 create index if not exists idx_comments_post_id on public.comments (post_id);
 create index if not exists idx_messages_receiver_id on public.messages (receiver_id, created_at desc);
 create index if not exists idx_messages_sender_receiver_created on public.messages (sender_id, receiver_id, created_at desc);
+create index if not exists idx_notifications_user_created on public.notifications (user_id, created_at desc);
+create index if not exists idx_notifications_user_read on public.notifications (user_id, read);
 
 alter table public.users enable row level security;
 alter table public.communities enable row level security;
@@ -88,6 +102,7 @@ alter table public.comments enable row level security;
 alter table public.messages enable row level security;
 alter table public.follows enable row level security;
 alter table public.reports enable row level security;
+alter table public.notifications enable row level security;
 
 create policy "Users can read profiles"
 on public.users for select
@@ -153,6 +168,19 @@ with check (auth.uid() = follower_id);
 create policy "Users create reports"
 on public.reports for insert
 with check (auth.uid() = reporter_id);
+
+create policy "Users read own notifications"
+on public.notifications for select
+using (auth.uid() = user_id);
+
+create policy "Users update own notifications"
+on public.notifications for update
+using (auth.uid() = user_id)
+with check (auth.uid() = user_id);
+
+create policy "Authenticated users create notifications"
+on public.notifications for insert
+with check (auth.role() = 'authenticated');
 
 create or replace view public.city_feed as
 select

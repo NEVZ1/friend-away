@@ -5,13 +5,15 @@ import {
   communities,
   conversations,
   currentUser,
+  follows,
   messages,
+  notifications,
   people,
   peopleLikeYou,
   posts,
   suggestedPrompts
 } from "@/lib/mock-data";
-import type { Comment, Community, Conversation, Message, Post, UserProfile } from "@/lib/types";
+import type { Comment, Community, Conversation, Message, NotificationItem, Post, UserProfile } from "@/lib/types";
 import { getArrivalCohort, slugify } from "@/lib/utils";
 
 export function hasSupabaseEnv() {
@@ -181,16 +183,60 @@ export async function getDiscoverData(city: string) {
     getCommunities(city)
   ]);
 
+  if (!hasSupabaseEnv()) {
+    return {
+      prompts: suggestedPrompts,
+      people: peopleLikeYou.filter(
+        (person) => person.current_city === city || person.country_origin === user.country_origin
+      ),
+      recentArrivals: peopleLikeYou.filter(
+        (person) => person.current_city === city && getArrivalCohort(person.arrival_date) === getArrivalCohort(user.arrival_date)
+      ),
+      posts: cityPosts,
+      communities: cityCommunities,
+      followingIds: follows.filter((follow) => follow.follower_id === user.id).map((follow) => follow.following_id)
+    };
+  }
+
+  const supabase = await createClient();
+  const usersTable = supabase.from("users") as any;
+  const followsTable = supabase.from("follows") as any;
+
+  const { data: suggestedUsers } = await usersTable
+    .select("*")
+    .neq("id", user.id)
+    .or(`current_city.eq.${city},country_origin.eq.${user.country_origin}`)
+    .limit(40);
+
+  const { data: followingRows } = await followsTable
+    .select("following_id")
+    .eq("follower_id", user.id);
+
+  const mappedUsers = ((suggestedUsers ?? []) as Array<Partial<UserProfile>>).map((profile) => ({
+    id: profile.id ?? "",
+    name: profile.name ?? "Unknown user",
+    email: profile.email ?? "",
+    country_origin: profile.country_origin ?? "Unknown",
+    current_city: profile.current_city ?? city,
+    arrival_date: profile.arrival_date ?? user.arrival_date,
+    user_type: (profile.user_type as UserProfile["user_type"] | null) ?? "other",
+    bio: profile.bio ?? "",
+    avatar_url: profile.avatar_url ?? currentUser.avatar_url,
+    onboarding_completed: profile.onboarding_completed ?? true,
+    created_at: profile.created_at ?? new Date().toISOString()
+  }));
+
+  const followingIds = ((followingRows ?? []) as Array<{ following_id: string }>).map((row) => row.following_id);
+
   return {
     prompts: suggestedPrompts,
-    people: peopleLikeYou.filter(
-      (person) => person.current_city === city || person.country_origin === user.country_origin
-    ),
-    recentArrivals: peopleLikeYou.filter(
+    people: mappedUsers.filter((person) => person.current_city === city || person.country_origin === user.country_origin),
+    recentArrivals: mappedUsers.filter(
       (person) => person.current_city === city && getArrivalCohort(person.arrival_date) === getArrivalCohort(user.arrival_date)
     ),
     posts: cityPosts,
-    communities: cityCommunities
+    communities: cityCommunities,
+    followingIds
   };
 }
 
@@ -216,4 +262,46 @@ export async function getMessages(): Promise<Message[]> {
 
 export async function getConversations(): Promise<Conversation[]> {
   return conversations;
+}
+
+export async function getNotifications(): Promise<NotificationItem[]> {
+  if (!hasSupabaseEnv()) {
+    return notifications;
+  }
+
+  const supabase = await createClient();
+  const user = await getCurrentUser();
+  const notificationsTable = supabase.from("notifications") as any;
+  const { data, error } = await notificationsTable
+    .select("*")
+    .eq("user_id", user.id)
+    .order("created_at", { ascending: false })
+    .limit(100);
+
+  if (error || !data) {
+    return notifications.filter((item) => item.user_id === user.id);
+  }
+
+  return data as NotificationItem[];
+}
+
+export async function getFollowStats(userId: string) {
+  if (!hasSupabaseEnv()) {
+    return {
+      followers: follows.filter((follow) => follow.following_id === userId).length,
+      following: follows.filter((follow) => follow.follower_id === userId).length
+    };
+  }
+
+  const supabase = await createClient();
+  const followsTable = supabase.from("follows") as any;
+  const [{ count: followerCount }, { count: followingCount }] = await Promise.all([
+    followsTable.select("id", { head: true, count: "exact" }).eq("following_id", userId),
+    followsTable.select("id", { head: true, count: "exact" }).eq("follower_id", userId)
+  ]);
+
+  return {
+    followers: followerCount ?? 0,
+    following: followingCount ?? 0
+  };
 }

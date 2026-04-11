@@ -3,6 +3,8 @@ import { CommunitySuggestionCard } from "@/components/community-suggestion-card"
 import { DemoDiscoverScreen } from "@/components/demo/demo-discover-screen";
 import { DiscoverSection } from "@/components/discover-section";
 import { EmptyState } from "@/components/empty-state";
+import { FollowToggleButton } from "@/components/follow-toggle-button";
+import { InviteCard } from "@/components/invite-card";
 import { UserSuggestionCard } from "@/components/user-suggestion-card";
 import { getCurrentUser, getDiscoverData, hasSupabaseEnv } from "@/lib/supabase/queries";
 
@@ -40,7 +42,11 @@ export default async function DiscoverPage() {
           >
             <div className="space-y-3">
               {discover.people.map((person) => (
-                <UserSuggestionCard key={person.id} user={person} />
+                <UserSuggestionCard
+                  key={person.id}
+                  user={person}
+                  action={<FollowToggleButton targetUserId={person.id} isFollowing={discover.followingIds.includes(person.id)} />}
+                />
               ))}
             </div>
           </DiscoverSection>
@@ -55,7 +61,13 @@ export default async function DiscoverPage() {
                   description="When new members arrive in your month, they’ll appear here."
                 />
               ) : (
-                discover.recentArrivals.map((person) => <UserSuggestionCard key={person.id} user={person} />)
+                discover.recentArrivals.map((person) => (
+                  <UserSuggestionCard
+                    key={person.id}
+                    user={person}
+                    action={<FollowToggleButton targetUserId={person.id} isFollowing={discover.followingIds.includes(person.id)} />}
+                  />
+                ))
               )}
             </div>
           </DiscoverSection>
@@ -78,6 +90,7 @@ export default async function DiscoverPage() {
           </DiscoverSection>
         </div>
         <div className="space-y-6">
+          <InviteCard city={user.current_city} />
           <DiscoverSection
             title="Nearby communities"
             description="City-first groups shaped around origin, arrival timing, and lifestyle."
